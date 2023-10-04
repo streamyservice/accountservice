@@ -12,6 +12,7 @@ type UserController interface {
 	DeleteUser(c *gin.Context)
 	RefreshAuthToken(c *gin.Context)
 	VerifyEmail(c *gin.Context)
+	GetUserByEmail(c *gin.Context)
 }
 
 type UserControllerImpl struct {
@@ -35,6 +36,9 @@ func (u UserControllerImpl) RefreshAuthToken(c *gin.Context) {
 
 }
 func (u UserControllerImpl) VerifyEmail(c *gin.Context) {
+
+}
+func (u UserControllerImpl) GetUserByEmail(c *gin.Context) {
 
 }
 
