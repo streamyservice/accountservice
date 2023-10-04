@@ -11,8 +11,35 @@ type UserController interface {
 	UpdateUser(c *gin.Context)
 	DeleteUser(c *gin.Context)
 	RefreshAuthToken(c *gin.Context)
+	VerifyEmail(c *gin.Context)
 }
 
 type UserControllerImpl struct {
 	svc service.UserService
+}
+
+func (u UserControllerImpl) RegisterUser(c *gin.Context) {
+
+}
+
+func (u UserControllerImpl) LoginUser(c *gin.Context) {
+
+}
+func (u UserControllerImpl) UpdateUser(c *gin.Context) {
+
+}
+func (u UserControllerImpl) DeleteUser(c *gin.Context) {
+
+}
+func (u UserControllerImpl) RefreshAuthToken(c *gin.Context) {
+
+}
+func (u UserControllerImpl) VerifyEmail(c *gin.Context) {
+
+}
+
+func UserControllerInit(userService service.UserService) *UserControllerImpl {
+	return &UserControllerImpl{
+		svc: userService,
+	}
 }

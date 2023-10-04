@@ -5,10 +5,10 @@
 package config
 
 import (
+	"accountservice/app/controller"
+	"accountservice/app/repository"
+	"accountservice/app/service"
 	"github.com/google/wire"
-	"structure/app/controller"
-	"structure/app/repository"
-	"structure/app/service"
 )
 
 var db = wire.NewSet(ConnectToDB)
