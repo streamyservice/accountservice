@@ -26,6 +26,7 @@ func (u UserRepositoryImpl) UpdateUser(email string, user *dao.User) (*dao.User,
 }
 
 func (u UserRepositoryImpl) GetUser(email string) (*dao.User, error) {
+
 	return nil, nil
 }
 
