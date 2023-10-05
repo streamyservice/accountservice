@@ -9,5 +9,7 @@ install_precommit:
 
 wire_generate:
 	 wire gen accountservice/config
+clean_modcache:
+	go clean -modcache
 
-.PHONY: install_commitlint precommit_install install_precommit
+.PHONY: install_commitlint precommit_install install_precommit clean_modcache
