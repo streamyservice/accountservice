@@ -1,15 +1,15 @@
 package pkg
 
 import (
-	"structure/app/constant"
-	"structure/app/domain/dto"
+	"accountservice/app/constants"
+	"accountservice/app/domain/dto"
 )
 
 func Null() interface{} {
 	return nil
 }
 
-func BuildResponse[T any](responseStatus constant.ResponseStatus, data T) dto.ApiResponse[T] {
+func BuildResponse[T any](responseStatus constants.ResponseStatus, data T) dto.ApiResponse[T] {
 	return BuildResponse_(responseStatus.GetResponseStatus(), responseStatus.GetResponseMessage(), data)
 }
 

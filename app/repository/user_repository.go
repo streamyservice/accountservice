@@ -18,7 +18,14 @@ type UserRepositoryImpl struct {
 }
 
 func (u UserRepositoryImpl) CreateUser(user *dao.User) (*dao.User, error) {
-	return nil, nil
+	var err = u.db.Save(user).Error
+	if err != nil {
+		log.Error("Got Error while saving user : ", err)
+
+		return nil, err
+	}
+	return user, nil
+
 }
 
 func (u UserRepositoryImpl) UpdateUser(email string, user *dao.User) (*dao.User, error) {
@@ -26,8 +33,17 @@ func (u UserRepositoryImpl) UpdateUser(email string, user *dao.User) (*dao.User,
 }
 
 func (u UserRepositoryImpl) GetUser(email string) (*dao.User, error) {
+	user := dao.User{
+		Email: email,
+	}
 
-	return nil, nil
+	err := u.db.Where("email = ?", user.Email).First(&user).Error
+	if err != nil {
+		log.Error("Got and error when finding user by email. Error: ", err)
+		return nil, err
+	}
+	return &user, nil
+
 }
 
 func (u UserRepositoryImpl) DeleteUser(emil string) error {

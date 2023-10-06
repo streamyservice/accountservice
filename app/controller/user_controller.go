@@ -20,11 +20,12 @@ type UserControllerImpl struct {
 }
 
 func (u UserControllerImpl) RegisterUser(c *gin.Context) {
+	u.svc.CreateUser(c)
 
 }
 
 func (u UserControllerImpl) LoginUser(c *gin.Context) {
-
+	u.svc.Login(c)
 }
 func (u UserControllerImpl) UpdateUser(c *gin.Context) {
 
