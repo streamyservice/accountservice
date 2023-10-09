@@ -1,7 +1,7 @@
 package dto
 
 type ApiResponse[T any] struct {
-	ResponseKey     string `json:"status"`
-	ResponseMessage string `json:"message"`
+	ResponseKey     string `json:"response_key"`
+	ResponseMessage string `json:"response_message"`
 	Data            T      `json:"data"`
 }
