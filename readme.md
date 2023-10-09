@@ -1,6 +1,5 @@
 # User Account Management Microservice
-
-![Build Status](https://img.shields.io/travis/yourusername/your-microservice)
+[![Build and Deploy](https://github.com/streamyservice/accountservice/actions/workflows/go.yml/badge.svg)](https://github.com/streamyservice/accountservice/actions/workflows/go.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 The User Account Management Microservice is a Go-based microservice that provides functionality for user registration, authentication, and account management.
@@ -89,4 +88,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [GORM](https://gorm.io/) - Object-relational mapping for Go
 - [JWT-Go](https://github.com/dgrijalva/jwt-go) - JSON Web Tokens for Go
 - [Swagger](https://swagger.io/) - API documentation tool
-```
