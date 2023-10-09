@@ -2,6 +2,7 @@ package service
 
 import (
 	"accountservice/app/constants"
+	"accountservice/app/domain/dao"
 	"accountservice/app/domain/dto"
 	"accountservice/app/pkg"
 	"accountservice/app/repository"
@@ -96,30 +97,38 @@ func (u UserServiceImpl) Login(c *gin.Context) {
 
 }
 func (u UserServiceImpl) CreateUser(c *gin.Context) {
-	/*log.Printf(c.ClientIP())
-
-	log.Info("start to execute program add data user")
-
 	defer pkg.PanicHandler(c)
+	var userRequest dto.UserRegistrationRequest
 
-	var request dao.User
-	if err := c.ShouldBindJSON(&request); err != nil {
-		log.Error("Happened error when mapping request from FE. Error", err)
+	if err := c.ShouldBindJSON(&userRequest); err != nil {
+		log.Errorf("Invalid data %s", err)
 		pkg.PanicException(constants.InvalidRequest)
 	}
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte(request.Password), 15)
-	request.Password = string(hash)
+	if u.userRepository.UserExists(userRequest.Email) {
+		log.Fatalf("User with the provided email address already exist")
+		pkg.PanicException(constants.InvalidRequest)
+	}
 
-	data, err := u.userRepository.CreateUser(&request)
+	user := dao.User{
+		Email:         userRequest.Email,
+		Username:      userRequest.Email,
+		Fullname:      userRequest.Fullname,
+		LastIp:        c.ClientIP(),
+		EmailVerified: false,
+	}
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte(userRequest.Password), 15)
+	user.Password = string(hash)
+
+	data, err := u.userRepository.CreateUser(&user)
 	if err != nil {
 		log.Error("Happened error when saving data to database. Error", err)
 		pkg.PanicException(constants.UnknownError)
 	}
-
-	c.JSON(http.StatusOK, pkg.BuildResponse(constants.Success, data))*/
-
+	c.JSON(http.StatusCreated, pkg.BuildResponse(constants.Success, data))
 }
+
 func (u UserServiceImpl) UpdateUser(c *gin.Context) {
 
 }
@@ -152,23 +161,6 @@ func UserServiceInit(userRepository repository.UserRepository) *UserServiceImpl 
 		userRepository: userRepository,
 	}
 }
-
-/*
-func ValidateRequest(c *gin.Context) bool {
-
-	v := validator.New()
-	a := User{
-		Email:    c.PostForm("email"),
-		Password: c.PostForm("password"),
-	}
-	err := v.Struct(a)
-
-	if err != nil {
-		fmt.Println("Validation error:", err)
-		return false
-	}
-	return true
-}*/
 
 func verifyPassword(plainPassword string, hashedPassword string) bool {
 
