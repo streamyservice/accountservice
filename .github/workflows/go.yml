@@ -3,7 +3,10 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - feature-user-reg
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
