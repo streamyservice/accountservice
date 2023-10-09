@@ -1,8 +1,10 @@
 # User Account Management Microservice
+
 [![Build and Deploy](https://github.com/streamyservice/accountservice/actions/workflows/go.yml/badge.svg)](https://github.com/streamyservice/accountservice/actions/workflows/go.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-The User Account Management Microservice is a Go-based microservice that provides functionality for user registration, authentication, and account management.
+The User Account Management Microservice is a Go-based microservice that provides functionality for user registration,
+authentication, and account management.
 
 ## Features
 
@@ -64,15 +66,18 @@ The User Account Management Microservice is a Go-based microservice that provide
 
 ### Usage
 
-- Access the API documentation at `http://localhost:8080/swagger/index.html` for detailed information on available endpoints and how to use them.
+- Access the API documentation at `http://localhost:8080/swagger/index.html` for detailed information on available
+  endpoints and how to use them.
 
 ### Configuration
 
-You can configure the microservice by modifying the `config.yaml` file. This includes setting up your database connection, JWT secret, and other environment-specific settings.
+You can configure the microservice by modifying the `config.yaml` file. This includes setting up your database
+connection, JWT secret, and other environment-specific settings.
 
 ### Deployment
 
-For production deployment, it's recommended to containerize the microservice using Docker and use an orchestration tool like Kubernetes or Docker Compose for scalability and reliability.
+For production deployment, it's recommended to containerize the microservice using Docker and use an orchestration tool
+like Kubernetes or Docker Compose for scalability and reliability.
 
 ## Contributing
 
