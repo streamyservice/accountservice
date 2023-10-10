@@ -1,0 +1,39 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Run Go tests
+        run: go test ./... -v
+
+      - name: Build Go application
+        run: go build -o accountservice
+
+      - name: Build Docker image
+        run: |
+          docker build -t paulodhiambo/accountservice:${{ github.sha }} .
+          docker tag paulodhiambo/accountservice:${{ github.sha }} paulodhiambo/accountservice:latest
+
+      - name: Log in to Docker Hub
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Docker image to Docker Hub
+        run: docker push paulodhiambo/accountservice:${{ github.sha }} && docker push paulodhiambo/accountservice:latest

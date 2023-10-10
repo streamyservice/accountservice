@@ -53,12 +53,12 @@ func TestUserController_RegisterUserSuccess(t *testing.T) {
 		_ = dbInstance.Close()
 	}()
 
-	req := httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"username": "testuser","email":"testuser@gmail.com","password":"TestUser@2023"}`))
+	req := httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023","fullname":"Paul Odhiambo"}`))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusCreated, w.Code)
-	assert.Contains(t, w.Body.String(), `"status":"SUCCESS"`)
+	assert.Contains(t, w.Body.String(), `"response_key":"SUCCESS"`)
 	var user dao.User
 	if err := json.Unmarshal(w.Body.Bytes(), &user); err != nil {
 		t.Errorf("Error decoding response body: %v", err)
@@ -74,12 +74,12 @@ func TestUserController_TestRegisterUserBadRequest(t *testing.T) {
 		_ = dbInstance.Close()
 	}()
 
-	req := httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"username": "testuser","email":"testuser@gmail.com"}`))
+	req := httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser@gmail.com"}`))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusCreated, w.Code)
-	assert.Contains(t, w.Body.String(), `"status":"INVALID_REQUEST"`)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), `"response_key":"INVALID_REQUEST"`)
 	var user dao.User
 	if err := json.Unmarshal(w.Body.Bytes(), &user); err != nil {
 		t.Errorf("Error decoding response body: %v", err)
@@ -95,13 +95,13 @@ func TestUserController_TestRegisterUserEmailExists(t *testing.T) {
 		_ = dbInstance.Close()
 	}()
 	//create first user
-	httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"username": "testuser","email":"testuser@gmail.com","password":"TestUser@2023"}`))
-	req := httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"username": "testuser","email":"testuser@gmail.com","password":"TestUser@2023"}`))
+	httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023"}`))
+	req := httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser1@gmail.com","password":"TestUser@2023"}`))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusCreated, w.Code)
-	assert.Contains(t, w.Body.String(), `"status":"INVALID_REQUEST"`)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), `"response_key":"INVALID_REQUEST"`)
 	var user dao.User
 	if err := json.Unmarshal(w.Body.Bytes(), &user); err != nil {
 		t.Errorf("Error decoding response body: %v", err)
