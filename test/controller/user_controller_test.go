@@ -19,6 +19,7 @@ import (
 
 const (
 	RegisterUserEndpoint = "/api/user/register"
+	LoginEndpoint        = "/api/user/login"
 )
 
 func setupTestEnvironment() (*gin.Engine, *gorm.DB) {
@@ -42,6 +43,7 @@ func setupTestEnvironment() (*gin.Engine, *gorm.DB) {
 
 	// Set up routes.
 	router.POST(RegisterUserEndpoint, userController.RegisterUser)
+	router.POST(LoginEndpoint, userController.LoginUser)
 	return router, db
 }
 
@@ -95,8 +97,8 @@ func TestUserController_TestRegisterUserEmailExists(t *testing.T) {
 		_ = dbInstance.Close()
 	}()
 	//create first user
-	httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023"}`))
-	req := httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser1@gmail.com","password":"TestUser@2023"}`))
+	httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023","fullname":"Paul Odhiambo"}`))
+	req := httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023"}`))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -107,4 +109,46 @@ func TestUserController_TestRegisterUserEmailExists(t *testing.T) {
 		t.Errorf("Error decoding response body: %v", err)
 	}
 	assert.NotNil(t, user)
+}
+func TestUserController_LoginUserSuccess(t *testing.T) {
+	// Set up the test environment.
+	router, db := setupTestEnvironment()
+	defer func() {
+		dbInstance, _ := db.DB()
+		_ = dbInstance.Close()
+	}()
+
+	httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023","fullname":"Paul Odhiambo"}`))
+	req := httptest.NewRequest("POST", LoginEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+	log.Printf("response body: %s", w.Body.String())
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp LoginResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Contains(t, w.Body.String(), `"response_key":"SUCCESS"`)
+	assert.Contains(t, w.Body.String(), `"response_message":"Success"`)
+	// Check the response body.
+	assert.Equal(t, "SUCCESS", resp.ResponseKey)
+	assert.Equal(t, "Success", resp.ResponseMessage)
+	assert.NotEmpty(t, resp.Data.Token)
+	assert.NotEmpty(t, resp.Data.RefreshToken)
+
+}
+
+type LoginResponse struct {
+	ResponseKey     string `json:"response_key"`
+	ResponseMessage string `json:"response_message"`
+	Data            struct {
+		RefreshToken string `json:"refresh_token"`
+		Token        string `json:"token"`
+	} `json:"data"`
 }

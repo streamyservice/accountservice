@@ -42,6 +42,11 @@ func (u UserServiceImpl) Login(c *gin.Context) {
 		return
 	}
 
+	//if u.userRepository.UserExists(loginRequest.Email) {
+	//	log.Fatalf("User with the provided email address does not exist")
+	//	pkg.PanicException(constants.InvalidRequest)
+	//}
+
 	user, err := u.userRepository.GetUser(loginRequest.Email)
 	if err != nil {
 		// Handle the error (e.g., user not found)
@@ -92,8 +97,10 @@ func (u UserServiceImpl) Login(c *gin.Context) {
 	}
 
 	// Return the token in the response
-	c.JSON(http.StatusOK, gin.H{"token": token,
-		"refresh_token": refreshToken})
+	c.JSON(http.StatusOK, pkg.BuildResponse(constants.Success, map[string]string{
+		"token":         token,
+		"refresh_token": refreshToken,
+	}))
 
 }
 func (u UserServiceImpl) CreateUser(c *gin.Context) {
