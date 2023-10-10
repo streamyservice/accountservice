@@ -8,7 +8,6 @@ import (
 	"accountservice/app/repository"
 	"accountservice/app/utils"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -37,26 +36,19 @@ func (u UserServiceImpl) Login(c *gin.Context) {
 
 	var loginRequest dto.LoginRequest
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		log.Error("JSON binding error: ", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		log.Errorf("Invalid data %s", err)
+		pkg.PanicException(constants.InvalidRequest)
 	}
-
-	//if u.userRepository.UserExists(loginRequest.Email) {
-	//	log.Fatalf("User with the provided email address does not exist")
-	//	pkg.PanicException(constants.InvalidRequest)
-	//}
 
 	user, err := u.userRepository.GetUser(loginRequest.Email)
 	if err != nil {
-		// Handle the error (e.g., user not found)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		return
+		log.Errorf("User not found  %s", err)
+		pkg.PanicException(constants.DataNotFound)
 	}
 
 	if !verifyPassword(loginRequest.Password, user.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
-		return
+		log.Errorf("Incorrect Password %s", err)
+		pkg.PanicException(constants.Unauthorized)
 	}
 
 	header := dto.Header{
@@ -66,8 +58,8 @@ func (u UserServiceImpl) Login(c *gin.Context) {
 
 	headerBytes, err := json.Marshal(header)
 	if err != nil {
-		fmt.Println("Error marshaling header to JSON:", err)
-		return
+		log.Errorf("Error marshaling header to JSON: %s", err)
+		pkg.PanicException(constants.UnknownError)
 	}
 
 	// Marshal JWTClaims into a map
@@ -82,18 +74,16 @@ func (u UserServiceImpl) Login(c *gin.Context) {
 	token, err := utils.GenerateToken(string(headerBytes), payloadMap, os.Getenv("JWT_SECRET"))
 	if err != nil {
 		// Handle token generation error
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token generation error"})
-
-		return
+		log.Errorf("Invalid Token Generated:  %s", err)
+		pkg.PanicException(constants.UnknownError)
 	}
 
 	refreshToken, err := utils.GenerateRefreshToken(user.ID, os.Getenv("JWT_SECRET"))
 
 	if err != nil {
 		// Handle token generation error
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token generation error"})
-
-		return
+		log.Errorf("Internal Server Error: %s", err)
+		pkg.PanicException(constants.UnknownError)
 	}
 
 	// Return the token in the response

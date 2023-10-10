@@ -159,6 +159,63 @@ func TestUserController_LoginUserSuccess(t *testing.T) {
 }
 
 func TestUserController_LoginUserIncorrectPassword(t *testing.T) {
+	// Set up the test environment.
+	router, db := setupTestEnvironment()
+	defer func() {
+		dbInstance, _ := db.DB()
+		_ = dbInstance.Close()
+	}()
+	//create User
+	userRepo := repository.UserRepositoryInit(db)
+	user := &dao.User{
+		Email:    "testuser@gmail.com",
+		Username: "testuser@gmail.com",
+		Fullname: "Paul Odhiambo",
+		Password: "",
+	}
+	hash, _ := bcrypt.GenerateFromPassword([]byte("TestUser@2023"), 15)
+	user.Password = string(hash)
+	_, err := userRepo.CreateUser(user)
+	if err != nil {
+		return
+	}
+	//login user
+	req := httptest.NewRequest("POST", LoginEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"ppp@2023"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+	log.Printf("response body: %s", w.Body.String())
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+	assert.Contains(t, w.Body.String(), `"response_key":"UNAUTHORIZED"`)
+	assert.Contains(t, w.Body.String(), `"response_message":"Unauthorized"`)
+	// Check the response body.
+
+}
+
+func TestUserController_LoginUserDoesNotExist(t *testing.T) {
+	// Set up the test environment.
+	router, db := setupTestEnvironment()
+	defer func() {
+		dbInstance, _ := db.DB()
+		_ = dbInstance.Close()
+	}()
+
+	//login user
+	req := httptest.NewRequest("POST", LoginEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"ppp@2023"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+	log.Printf("response body: %s", w.Body.String())
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+
+	assert.Contains(t, w.Body.String(), `"response_key":"DATA_NOT_FOUND"`)
+	assert.Contains(t, w.Body.String(), `"response_message":"Data Not Found"`)
+	// Check the response body.
 
 }
 
