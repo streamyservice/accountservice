@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"net/http"
@@ -117,8 +118,21 @@ func TestUserController_LoginUserSuccess(t *testing.T) {
 		dbInstance, _ := db.DB()
 		_ = dbInstance.Close()
 	}()
-
-	httptest.NewRequest("POST", RegisterUserEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023","fullname":"Paul Odhiambo"}`))
+	//create User
+	userRepo := repository.UserRepositoryInit(db)
+	user := &dao.User{
+		Email:    "testuser@gmail.com",
+		Username: "testuser@gmail.com",
+		Fullname: "Paul Odhiambo",
+		Password: "",
+	}
+	hash, _ := bcrypt.GenerateFromPassword([]byte("TestUser@2023"), 15)
+	user.Password = string(hash)
+	_, err := userRepo.CreateUser(user)
+	if err != nil {
+		return
+	}
+	//login user
 	req := httptest.NewRequest("POST", LoginEndpoint, strings.NewReader(`{"email":"testuser@gmail.com","password":"TestUser@2023"}`))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -129,7 +143,7 @@ func TestUserController_LoginUserSuccess(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp LoginResponse
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	err = json.Unmarshal(w.Body.Bytes(), &resp)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,6 +155,10 @@ func TestUserController_LoginUserSuccess(t *testing.T) {
 	assert.Equal(t, "Success", resp.ResponseMessage)
 	assert.NotEmpty(t, resp.Data.Token)
 	assert.NotEmpty(t, resp.Data.RefreshToken)
+
+}
+
+func TestUserController_LoginUserIncorrectPassword(t *testing.T) {
 
 }
 
