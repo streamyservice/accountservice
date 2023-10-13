@@ -28,7 +28,7 @@ func (u UserControllerImpl) LoginUser(c *gin.Context) {
 	u.svc.Login(c)
 }
 func (u UserControllerImpl) UpdateUser(c *gin.Context) {
-
+	u.svc.UpdateUser(c)
 }
 func (u UserControllerImpl) DeleteUser(c *gin.Context) {
 
