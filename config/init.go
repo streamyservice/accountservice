@@ -7,18 +7,22 @@ import (
 )
 
 type Initialization struct {
-	userRepo repository.UserRepository
-	userSvc  service.UserService
-	UserCtrl controller.UserController
+	userRepo      repository.UserRepository
+	userTokenRepo repository.UserTokenRepository
+	userSvc       service.UserService
+	UserCtrl      controller.UserController
 }
 
-func NewInitialization(userRepo repository.UserRepository,
+func NewInitialization(
+	userTokenRepo repository.UserTokenRepository,
+	userRepo repository.UserRepository,
 	userService service.UserService,
 	userCtrl controller.UserController,
 ) *Initialization {
 	return &Initialization{
-		userRepo: userRepo,
-		userSvc:  userService,
-		UserCtrl: userCtrl,
+		userTokenRepo: userTokenRepo,
+		userRepo:      userRepo,
+		userSvc:       userService,
+		UserCtrl:      userCtrl,
 	}
 }

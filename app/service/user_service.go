@@ -8,6 +8,7 @@ import (
 	"accountservice/app/repository"
 	"accountservice/app/utils"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -24,10 +25,14 @@ type UserService interface {
 	VerifyUserEmail(c *gin.Context)
 	DeleteUser(c *gin.Context)
 	Login(c *gin.Context)
+	GetUserToken(c *gin.Context)
+	SaveUserToken(c *gin.Context)
+	CodeExists(c *gin.Context)
 }
 
 type UserServiceImpl struct {
-	userRepository repository.UserRepository
+	userRepository      repository.UserRepository
+	userTokenRepository repository.UserTokenRepository
 }
 
 func (u UserServiceImpl) Login(c *gin.Context) {
@@ -103,7 +108,7 @@ func (u UserServiceImpl) CreateUser(c *gin.Context) {
 	}
 
 	if u.userRepository.UserExists(userRequest.Email) {
-		log.Fatalf("User with the provided email address already exist")
+		log.Errorf("User with the provided email address already exist")
 		pkg.PanicException(constants.InvalidRequest)
 	}
 
@@ -123,6 +128,27 @@ func (u UserServiceImpl) CreateUser(c *gin.Context) {
 		log.Error("Happened error when saving data to database. Error", err)
 		pkg.PanicException(constants.UnknownError)
 	}
+	fmt.Printf("%s", data)
+
+	// create and save token details for the user
+	code, err := utils.GenOtpCode()
+	userToken := &dao.UserToken{
+		Id:    user.ID,
+		Email: user.Email,
+		Exp:   time.Now().Add(1 * time.Hour),
+		Code:  code,
+	}
+
+	userTokenData, err := u.userTokenRepository.SaveUserToken(userToken)
+
+	// send verification token to the user
+	emailData := utils.EmailData{
+		URL:       userTokenData.Code,
+		FirstName: data.Fullname,
+		Subject:   "Your account verification code",
+	}
+
+	utils.SendEmail(data, &emailData)
 	c.JSON(http.StatusCreated, pkg.BuildResponse(constants.Success, data))
 }
 
@@ -143,19 +169,73 @@ func (u UserServiceImpl) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, pkg.BuildResponse(constants.Success, data))
 
 }
+func (u UserServiceImpl) GetUserToken(c *gin.Context) {
+	defer pkg.PanicHandler(c)
+
+	log.Info("start to execute program get user by email")
+	email := c.PostForm("email")
+	data, err := u.userTokenRepository.GetUserToken(email)
+	if err != nil {
+		log.Error("Happened error when getting data from database. Error ", err)
+		pkg.PanicException(constants.DataNotFound)
+	}
+
+	c.JSON(http.StatusOK, pkg.BuildResponse(constants.Success, data))
+
+}
 func (u UserServiceImpl) RefreshAuthToken(c *gin.Context) {
 
 }
 func (u UserServiceImpl) VerifyUserEmail(c *gin.Context) {
+	defer pkg.PanicHandler(c)
+	var verificationCodeRequest dto.EmailVerification
+
+	if err := c.ShouldBindJSON(&verificationCodeRequest); err != nil {
+		log.Errorf("Invalid data %s", err)
+		pkg.PanicException(constants.InvalidRequest)
+	}
+
+	// check if the code exist in the database
+	if !u.userTokenRepository.CodeExists(verificationCodeRequest.Code) {
+		log.Errorf("Provided Code Does Not Exist")
+		pkg.PanicException(constants.InvalidRequest)
+	}
+
+	// get token code using Email
+	userTokenDetails, err := u.userTokenRepository.GetUserToken(verificationCodeRequest.Email)
+	if err != nil {
+		log.Errorf("Invalid data %s", err)
+		pkg.PanicException(constants.DataNotFound)
+	}
+	if !utils.VerifyOTP(verificationCodeRequest.Code, userTokenDetails.Code) {
+		log.Errorf("The Code Provided Does not match")
+		pkg.PanicException(constants.InvalidRequest)
+	}
+
+	user, err := u.userRepository.GetUser(userTokenDetails.Email)
+	if err != nil {
+		log.Errorf("Invalid data %s", err)
+		pkg.PanicException(constants.DataNotFound)
+	}
+	user.EmailVerified = true
+	c.JSON(http.StatusOK, pkg.BuildResponse(constants.Success, user))
+
+}
+
+func (u UserServiceImpl) SaveUserToken(c *gin.Context) {
+
+}
+func (u UserServiceImpl) CodeExists(c *gin.Context) {
 
 }
 func (u UserServiceImpl) DeleteUser(c *gin.Context) {
 
 }
 
-func UserServiceInit(userRepository repository.UserRepository) *UserServiceImpl {
+func UserServiceInit(userRepository repository.UserRepository, tokenRepository repository.UserTokenRepository) *UserServiceImpl {
 	return &UserServiceImpl{
-		userRepository: userRepository,
+		userRepository:      userRepository,
+		userTokenRepository: tokenRepository,
 	}
 }
 

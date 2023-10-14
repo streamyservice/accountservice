@@ -21,6 +21,7 @@ func Init(init *config.Initialization) *gin.Engine {
 		user.GET("/:userEmail", init.UserCtrl.GetUserByEmail)
 		user.PUT("/update/:userEmail", init.UserCtrl.UpdateUser)
 		user.DELETE("/delete/:userEmail", init.UserCtrl.DeleteUser)
+
 	}
 
 	return router

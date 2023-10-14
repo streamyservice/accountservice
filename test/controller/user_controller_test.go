@@ -39,7 +39,8 @@ func setupTestEnvironment() (*gin.Engine, *gorm.DB) {
 
 	// Inject the database and router into the UserController.
 	userRepo := repository.UserRepositoryInit(db)
-	userService := service.UserServiceInit(userRepo)
+	userTokenRepo := repository.UserTokenRepositoryInit(db)
+	userService := service.UserServiceInit(userRepo, userTokenRepo)
 	userController := controller.UserControllerInit(userService)
 
 	// Set up routes.

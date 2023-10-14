@@ -22,9 +22,10 @@ import (
 func Init() *Initialization {
 	gormDB := ConnectToDB()
 	userRepositoryImpl := repository.UserRepositoryInit(gormDB)
-	userServiceImpl := service.UserServiceInit(userRepositoryImpl)
+	userTokenRepositoryImpl := repository.UserTokenRepositoryInit(gormDB)
+	userServiceImpl := service.UserServiceInit(userRepositoryImpl, userTokenRepositoryImpl)
 	userControllerImpl := controller.UserControllerInit(userServiceImpl)
-	initialization := NewInitialization(userRepositoryImpl, userServiceImpl, userControllerImpl)
+	initialization := NewInitialization(userTokenRepositoryImpl, userRepositoryImpl, userServiceImpl, userControllerImpl)
 	return initialization
 }
 
@@ -35,5 +36,7 @@ var db = wire.NewSet(ConnectToDB)
 var userServiceSet = wire.NewSet(service.UserServiceInit, wire.Bind(new(service.UserService), new(*service.UserServiceImpl)))
 
 var userRepoSet = wire.NewSet(repository.UserRepositoryInit, wire.Bind(new(repository.UserRepository), new(*repository.UserRepositoryImpl)))
+
+var userTokenRepoSet = wire.NewSet(repository.UserTokenRepositoryInit, wire.Bind(new(repository.UserTokenRepository), new(*repository.UserTokenRepositoryImpl)))
 
 var userCtrlSet = wire.NewSet(controller.UserControllerInit, wire.Bind(new(controller.UserController), new(*controller.UserControllerImpl)))
