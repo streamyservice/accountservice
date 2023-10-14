@@ -38,8 +38,12 @@ func (u UserControllerImpl) RefreshAuthToken(c *gin.Context) {
 }
 func (u UserControllerImpl) VerifyEmail(c *gin.Context) {
 
+	u.svc.VerifyUserEmail(c)
+
 }
 func (u UserControllerImpl) GetUserByEmail(c *gin.Context) {
+
+	u.svc.GetUser(c)
 
 }
 
